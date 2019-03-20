@@ -9,31 +9,31 @@ using System;
 
 namespace Quantum.Walk
 {
-    // public class TestSuiteRunner
-    // {
-    //     private readonly ITestOutputHelper output;
+    public class TestSuiteRunner
+    {
+        private readonly ITestOutputHelper output;
 
-    //     public TestSuiteRunner(ITestOutputHelper output)
-    //     {
-    //         this.output = output;
-    //     }
+        public TestSuiteRunner(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
 
-    //     /// <summary>
-    //     /// This driver will run all Q# tests (operations named "...Test") 
-    //     /// that belong to namespace Quantum.Walk.
-    //     /// </summary>
-    //     // [OperationDriver(TestNamespace = "Quantum.Walk")]
-    //     public void TestTarget(TestOperation op)
-    //     {
-    //         using (var sim = new QuantumSimulator())
-    //         {
-    //             // OnLog defines action(s) performed when Q# test calls function Message
-    //             sim.OnLog += (msg) => { output.WriteLine(msg); };
-    //             sim.OnLog += (msg) => { Debug.WriteLine(msg); };
-    //             op.TestOperationRunner(sim);
-    //         }
-    //     }
-    // }
+        /// <summary>
+        /// This driver will run all Q# tests (operations named "...Test") 
+        /// that belong to namespace Quantum.Walk.
+        /// </summary>
+        // [OperationDriver(TestNamespace = "Quantum.Walk")]
+        public void TestTarget(TestOperation op)
+        {
+            using (var sim = new QuantumSimulator())
+            {
+                // OnLog defines action(s) performed when Q# test calls function Message
+                sim.OnLog += (msg) => { output.WriteLine(msg); };
+                sim.OnLog += (msg) => { Debug.WriteLine(msg); };
+                op.TestOperationRunner(sim);
+            }
+        }
+    }
 
     class Program
     {        
@@ -41,7 +41,8 @@ namespace Quantum.Walk
         {   
             using (var qsim = new QuantumSimulator())
             {
-                WalkRun.Run(qsim, 15, 5);                
+                var result = WalkRun.Run(qsim, 15, 6).Result;
+                Console.WriteLine($"Result: {result}");
             }
             Console.WriteLine("hello");
         }
