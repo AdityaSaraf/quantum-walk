@@ -21,19 +21,19 @@ namespace Quantum.Walk {
         (ControlledOnInt(1, Adjoint ModularIncrementLE))([chirality], (1, modulus, LittleEndian(register)));
     }
 
-    operation WalkRun(numSteps : Int, numQubits: Int) : String {
-        mutable str = "";
+    operation WalkRun(numSteps : Int, numQubits: Int) : Unit {
         using ((register, chirality) = (Qubit[numQubits], Qubit())) {
             // set register to n/2
             X(register[Length(register)-1]);
-            Message("hi");
-            DumpMachine(str);
+            DumpMachine("step0.txt");
             for (i in 1..numSteps) {
                 Walk(register, chirality);
+                // Message(str2);
                 DumpMachine($"step{i}.txt");
             }
+            ResetAll(register);
+            Reset(chirality);
         }
-        return str;
     }
     
 }

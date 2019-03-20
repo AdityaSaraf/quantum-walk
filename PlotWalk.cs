@@ -6,6 +6,10 @@ using Microsoft.Quantum.Simulation.Simulators;
 using Xunit.Abstractions;
 using System.Diagnostics;
 using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Globalization;
 
 namespace Quantum.Walk
 {
@@ -39,12 +43,44 @@ namespace Quantum.Walk
     {        
         static void Main(string[] args)
         {   
+            int numSteps = 30;
+            int numBits = 6;
             using (var qsim = new QuantumSimulator())
             {
-                var result = WalkRun.Run(qsim, 15, 6).Result;
-                Console.WriteLine($"Result: {result}");
+                var result = WalkRun.Run(qsim, numSteps, numBits).Result;
+                for (int i = 0; i <= numSteps; i++) {
+                    var dump = File.ReadAllLines($"step{i}.txt");
+                    dump = dump.Skip(1).ToArray();
+                    Dictionary<double, double> dict = ParseDumpFile(dump);
+                    Console.WriteLine(String.Join(";" , dict));
+                }
             }
-            Console.WriteLine("hello");
+        }
+
+        static Dictionary<double, double> ParseDumpFile(String[] dump) {
+            Dictionary<double, double> dict = new Dictionary<double, double>();
+            int offset = dump.Length/2;
+            for (int i = 0; i < dump.Length/2; i++) {
+                string line = dump[i];
+                (double num, double prob) = ParseLine(line);
+                string offsetLine = dump[i+offset];
+                (double offsetNum, double offsetProb) = ParseLine(offsetLine);
+                double finalProb = prob + offsetProb;
+                if (finalProb < 0.0000005) {
+                    finalProb = 0;
+                }
+                dict[num] = finalProb;
+            }
+            return dict;
+        }
+        
+        static (double, double) ParseLine(String line) {
+            string[] arr = line.Split("\t", 3);
+            double num = Int32.Parse(arr[0].Remove(arr[0].Length-1));
+            double prob = Double.Parse(arr[1], NumberStyles.Float);
+            // need to square the amplitude to get the probability. this also ensures it's positive
+            prob *= prob;
+            return (num, prob);
         }
     }
 }
