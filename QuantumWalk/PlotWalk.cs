@@ -39,33 +39,70 @@ namespace Quantum.Walk
         }
     }
 
-    class Program
-    {        
+   class Program
+    {
         static void Main(string[] args)
-        {   
-            int numSteps = Int32.Parse(args[1]);
-            int numBits = Int32.Parse(args[0]);
-            using (var qsim = new QuantumSimulator())
+        {
+            int numSteps, numBits;
+            if (args.Length == 3) {
+                numSteps = Int32.Parse(args[2]);
+                numBits = Int32.Parse(args[1]);
+            } else
             {
-                var j = 0;
-                while (true)
+                numSteps = 30;
+                numBits = 6;
+            }
+
+            if (args.Length == 0 || args[0] == "H")
+            {
+                using (var qsim = new QuantumSimulator())
                 {
-                    if (!File.Exists($"step{j}.txt"))
-                        break;
-                    File.Delete($"step{j}.txt");
-                    j++;
+                    var j = 0;
+                    while (true)
+                    {
+                        if (!File.Exists($"step{j}.txt"))
+                            break;
+                        File.Delete($"step{j}.txt");
+                        j++;
+                    }
+                    var result = WalkRun.Run(qsim, numSteps, numBits).Result;
+                    for (int i = 0; i <= numSteps; i++)
+                    {
+                        var dump = File.ReadAllLines($"step{i}.txt");
+                        dump = dump.Skip(1).ToArray();
+                        Dictionary<double, double> dict = ParseDumpFile(dump);
+                        Console.WriteLine(String.Join(";", dict));
+                    }
                 }
-                var result = WalkRun.Run(qsim, numSteps, numBits).Result;
-                for (int i = 0; i <= numSteps; i++) {
-                    var dump = File.ReadAllLines($"step{i}.txt");
-                    dump = dump.Skip(1).ToArray();
-                    Dictionary<double, double> dict = ParseDumpFile(dump);
-                    Console.WriteLine(String.Join(";" , dict));
+                Console.WriteLine("******\n*******\n******\n******");
+            }
+
+        
+            
+            else if (args.Length == 0 || args[0] == "B") { 
+                using (var qsim = new QuantumSimulator())
+                {
+                    var j = 0;
+                    while (true)
+                    {
+                        if (!File.Exists($"balanced-step{j}.txt"))
+                            break;
+                        File.Delete($"balanced-step{j}.txt");
+                        j++;
+                    }
+                    var result = BalancedWalkRun.Run(qsim, numSteps, numBits).Result;
+                    for (int i = 0; i <= numSteps; i++)
+                    {
+                        var dump = File.ReadAllLines($"balanced-step{i}.txt");
+                        dump = dump.Skip(1).ToArray();
+                        Dictionary<double, double> dict = ParseDumpFile(dump);
+                        Console.WriteLine(String.Join(";", dict));
+                    }
                 }
             }
 
 
-           /**/
+          
         }
 
        

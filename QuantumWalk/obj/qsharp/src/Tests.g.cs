@@ -29,6 +29,12 @@ namespace Quantum.Walk
             set;
         }
 
+        protected ICallable<QVoid, Double> MicrosoftQuantumExtensionsMathPI
+        {
+            get;
+            set;
+        }
+
         protected Allocate Allocate
         {
             get;
@@ -53,7 +59,25 @@ namespace Quantum.Walk
             set;
         }
 
+        protected IUnitary<(Double,Qubit)> MicrosoftQuantumPrimitiveRx
+        {
+            get;
+            set;
+        }
+
         protected IUnitary<Qubit> MicrosoftQuantumPrimitiveX
+        {
+            get;
+            set;
+        }
+
+        protected IUnitary<Qubit> MicrosoftQuantumPrimitiveY
+        {
+            get;
+            set;
+        }
+
+        protected IUnitary<Qubit> MicrosoftQuantumPrimitiveZ
         {
             get;
             set;
@@ -95,6 +119,16 @@ namespace Quantum.Walk
                 ResetAll.Apply(register?.Copy());
 #line 34 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
                 Reset.Apply(chirality);
+#line 35 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
+                MicrosoftQuantumPrimitiveZ.Apply(chirality);
+#line 36 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
+                MicrosoftQuantumPrimitiveY.Apply(chirality);
+#line 37 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
+                MicrosoftQuantumPrimitiveRx.Apply(((MicrosoftQuantumExtensionsMathPI.Apply(QVoid.Instance) / 2D), chirality));
+#line 38 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
+                MicrosoftQuantumExtensionsDiagnosticsDumpMachine.Apply("BLAH.txt");
+#line 39 "C:\\Users\\Mirt\\quantum-walk\\QuantumWalk\\Tests.qs"
+                Reset.Apply(chirality);
 #line hidden
                 Release.Apply(register);
 #line hidden
@@ -110,11 +144,15 @@ namespace Quantum.Walk
         {
             this.Length = this.Factory.Get<ICallable>(typeof(Microsoft.Quantum.Core.Length<>));
             this.MicrosoftQuantumExtensionsDiagnosticsDumpMachine = this.Factory.Get<ICallable>(typeof(Microsoft.Quantum.Extensions.Diagnostics.DumpMachine<>));
+            this.MicrosoftQuantumExtensionsMathPI = this.Factory.Get<ICallable<QVoid, Double>>(typeof(Microsoft.Quantum.Extensions.Math.PI));
             this.Allocate = this.Factory.Get<Allocate>(typeof(Microsoft.Quantum.Primitive.Allocate));
             this.Release = this.Factory.Get<Release>(typeof(Microsoft.Quantum.Primitive.Release));
             this.Reset = this.Factory.Get<ICallable<Qubit, QVoid>>(typeof(Microsoft.Quantum.Primitive.Reset));
             this.ResetAll = this.Factory.Get<ICallable<QArray<Qubit>, QVoid>>(typeof(Microsoft.Quantum.Primitive.ResetAll));
+            this.MicrosoftQuantumPrimitiveRx = this.Factory.Get<IUnitary<(Double,Qubit)>>(typeof(Microsoft.Quantum.Primitive.Rx));
             this.MicrosoftQuantumPrimitiveX = this.Factory.Get<IUnitary<Qubit>>(typeof(Microsoft.Quantum.Primitive.X));
+            this.MicrosoftQuantumPrimitiveY = this.Factory.Get<IUnitary<Qubit>>(typeof(Microsoft.Quantum.Primitive.Y));
+            this.MicrosoftQuantumPrimitiveZ = this.Factory.Get<IUnitary<Qubit>>(typeof(Microsoft.Quantum.Primitive.Z));
             this.Walk = this.Factory.Get<ICallable<(QArray<Qubit>,Qubit), QVoid>>(typeof(Walk));
         }
 

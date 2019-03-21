@@ -73,12 +73,8 @@ namespace GraphWalk
 
         private void ReadHadamard()
         {
-            ProcessStartInfo script = new ProcessStartInfo();
-            script.FileName = "CMD.exe";
-            script.RedirectStandardOutput = false;
-            script.UseShellExecute = false;
-            script.Arguments = "/c " + System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\walk.bat";            
-            Process p = Process.Start(script);
+              
+            Process p = Process.Start(getScript('H'));
            
             
             p.WaitForExit();
@@ -118,7 +114,7 @@ namespace GraphWalk
                 {
                     MaxValue -= 1.0 / 30.0;
                 }
-                Thread.Sleep(100);
+                Thread.Sleep(300);
                 i++;
             }
 
@@ -131,11 +127,71 @@ namespace GraphWalk
             for (int i = 0; i <= numSteps; i++)
             {
                 Dictionary<double, double> dict = ClassicalRandomWalk(i, numBits);
+
+                if (dict.Keys.Count != SeriesCollection[0].Values.Count)
+                {
+                    Console.WriteLine("BEFORE " + dict.Keys.Count + " AND " + SeriesCollection[0].Values.Count);
+                    for (int j = SeriesCollection[0].Values.Count - 1; j >= 0; j--)
+                    {
+                        SeriesCollection[0].Values.RemoveAt(j);
+                    }
+                    Console.WriteLine(dict.Keys.Count + " AND " + SeriesCollection[0].Values.Count);
+                    for (int j = 0; j < dict.Keys.Count; j++)
+                    {
+
+                        SeriesCollection[0].Values.Insert(j, new ObservableValue(0.0));
+                    }
+                }
                 foreach (var ind in dict.ToArray())
                 {
                     Vals[(int)ind.Key].Value = dict[ind.Key];
                 }
                 Thread.Sleep(300);
+            }
+        }
+
+        private void ReadBalanced()
+        {
+            Process p = Process.Start(getScript('B'));
+            p.WaitForExit();
+
+            var i = 0;
+            while (true)
+            {
+                var path = System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\QuantumWalk";
+                // Console.WriteLine(System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName);
+                if (!File.Exists(path + $"\\balanced-step{i}.txt"))
+                    break;
+
+                var dump = File.ReadAllLines(path + $"\\balanced-step{i}.txt");
+                dump = dump.Skip(1).ToArray();
+                Dictionary<double, double> dict = ParseDumpFile(dump);
+                if (dict.Keys.Count != SeriesCollection[0].Values.Count)
+                {
+
+                    for (int j = SeriesCollection[0].Values.Count - 1; j >= 0; j--)
+                    {
+                        SeriesCollection[0].Values.RemoveAt(j);
+                    }
+
+                    for (int j = 0; j < dict.Keys.Count; j++)
+                    {
+
+                        SeriesCollection[0].Values.Insert(j, new ObservableValue(0.0));
+                    }
+                }
+
+                foreach (var ind in dict.ToArray())
+                {
+                    Vals[(int)ind.Key].Value = dict[ind.Key];
+                }
+
+                if (MaxValue > .35)
+                {
+                    MaxValue -= 1.0 / 30.0;
+                }
+                Thread.Sleep(200);
+                i++;
             }
         }
 
@@ -211,9 +267,11 @@ namespace GraphWalk
             string[] arr = line.Split('\t');
             double num = Int32.Parse(arr[0].Remove(arr[0].Length - 1));
             double prob = Double.Parse(arr[1], NumberStyles.Float);
+            double imaginary = Double.Parse(arr[2], NumberStyles.Float);
             // need to square the amplitude to get the probability. this also ensures it's positive
             prob *= prob;
-            return (num, prob);
+            imaginary *= imaginary;
+            return (num, prob + imaginary);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -232,6 +290,22 @@ namespace GraphWalk
         {
             MaxValue = 1;
             Task.Factory.StartNew(ReadClassic);
+        }
+
+        private void BWalk(object sender, RoutedEventArgs e)
+        {
+            MaxValue = 1;
+            Task.Factory.StartNew(ReadBalanced);
+        }
+
+        private ProcessStartInfo getScript(char arg)
+        {
+            ProcessStartInfo script = new ProcessStartInfo();
+            script.FileName = "CMD.exe";
+            script.RedirectStandardOutput = false;
+            script.UseShellExecute = false;
+            script.Arguments = "/c " + System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\walk.bat " + arg;
+            return script;
         }
     }
 }

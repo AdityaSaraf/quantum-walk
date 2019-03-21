@@ -32,6 +32,11 @@ namespace Quantum.Walk {
             DumpMachine("step4.txt");
             ResetAll(register);
             Reset(chirality);
+			Z(chirality);
+			Y(chirality);
+			Rx(PI()/2.0, chirality);
+			DumpMachine("BLAH.txt");
+			 Reset(chirality);
         }
     }        
 }
