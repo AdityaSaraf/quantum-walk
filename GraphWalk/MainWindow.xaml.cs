@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Diagnostics;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -42,8 +43,6 @@ namespace GraphWalk
         {
             InitializeComponent();
 
-            int numSteps = 30;
-
             Vals = new ChartValues<ObservableValue>();
             for(int i = 0; i < 64; i++)
             {
@@ -61,25 +60,36 @@ namespace GraphWalk
             
             };
 
-            SeriesCollection = new SeriesCollection { lineSeries };
+            SeriesCollection = new SeriesCollection();
+            SeriesCollection.Add(lineSeries);
             MaxValue = 1.0;
 
             DataContext = this;
           
 
-            Task.Factory.StartNew(Read);
-
-           
+                    
             
         }
 
         private void Read()
         {
+            ProcessStartInfo script = new ProcessStartInfo();
+            script.FileName = "CMD.exe";
+            script.RedirectStandardOutput = false;
+            script.UseShellExecute = false;
+            script.Arguments = "/c " + System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.FullName + "\\walk.bat";            
+            Process p = Process.Start(script);
+           
+            
+            p.WaitForExit();
+            
+            Console.WriteLine("Compiled");
+
             for (int i = 0; i <= 30; i++)
             {
-                //var path = System.IO.Path.Combine(Directory.GetParent(System.IO.Directory.GetCurrentDirectory()).Parent.Parent.FullName, "quantum-walk\\bin\\Debug\\netcoreapp2.1");
-                //Console.WriteLine(System.IO.Directory.GetCurrentDirectory);
-                var dump = File.ReadAllLines($"step{i}.txt");
+                var path = System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\QuantumWalk";
+               // Console.WriteLine(System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName);
+                var dump = File.ReadAllLines(path+ $"\\step{i}.txt");
                 dump = dump.Skip(1).ToArray();
                 Dictionary<double, double> dict = ParseDumpFile(dump);
                 foreach (var ind in dict.ToArray())
@@ -131,6 +141,16 @@ namespace GraphWalk
         protected virtual void OnPropertyChanged(string propertyName = null)
         {
             if (PropertyChanged != null) PropertyChanged.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void HWalk(object sender, RoutedEventArgs e)
+        {
+            MaxValue = 1;
+            Task.Factory.StartNew(Read);
+        }
+        private void CWalk(object sender, RoutedEventArgs e)
+        {
+            MaxValue = 1;
         }
     }
 }
