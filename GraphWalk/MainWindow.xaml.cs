@@ -71,7 +71,7 @@ namespace GraphWalk
             
         }
 
-        private void Read()
+        private void ReadHadamard()
         {
             ProcessStartInfo script = new ProcessStartInfo();
             script.FileName = "CMD.exe";
@@ -84,14 +84,31 @@ namespace GraphWalk
             p.WaitForExit();
             
             Console.WriteLine("Compiled");
-
-            for (int i = 0; i <= 30; i++)
+            var i = 0;
+            while (true)
             {
                 var path = System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName + "\\QuantumWalk";
-               // Console.WriteLine(System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName);
+                // Console.WriteLine(System.IO.Directory.GetParent(Directory.GetCurrentDirectory()).Parent.Parent.FullName);
+                if (!File.Exists(path + $"\\step{i}.txt"))
+                    break;
+
                 var dump = File.ReadAllLines(path+ $"\\step{i}.txt");
                 dump = dump.Skip(1).ToArray();
                 Dictionary<double, double> dict = ParseDumpFile(dump);
+                if (dict.Keys.Count != SeriesCollection[0].Values.Count)
+                {
+                    Console.WriteLine("BEFORE " + dict.Keys.Count + " AND " + SeriesCollection[0].Values.Count);
+                    for (int j = SeriesCollection[0].Values.Count - 1; j >=0  ; j--)
+                    {
+                        SeriesCollection[0].Values.RemoveAt(j);
+                    }
+                    Console.WriteLine(dict.Keys.Count + " AND " + SeriesCollection[0].Values.Count);
+                    for (int j = 0; j < dict.Keys.Count; j++) {
+                        
+                        SeriesCollection[0].Values.Insert(j, new ObservableValue(0.0));
+                    }
+                }
+
                 foreach (var ind in dict.ToArray())
                 {
                     Vals[(int)ind.Key].Value = dict[ind.Key];
@@ -101,10 +118,69 @@ namespace GraphWalk
                 {
                     MaxValue -= 1.0 / 30.0;
                 }
-                Thread.Sleep(300);
+                Thread.Sleep(100);
+                i++;
             }
 
         }
+
+        private void ReadClassic()
+        {
+            int numSteps = 30;
+            int numBits = 6;
+            for (int i = 0; i <= numSteps; i++)
+            {
+                Dictionary<double, double> dict = ClassicalRandomWalk(i, numBits);
+                foreach (var ind in dict.ToArray())
+                {
+                    Vals[(int)ind.Key].Value = dict[ind.Key];
+                }
+                Thread.Sleep(300);
+            }
+        }
+
+
+        static Dictionary<double, double> ClassicalRandomWalk(int numSteps, int numBits)
+        {
+            double startPos = Math.Pow(2, numBits - 1);
+            double currPos;
+            Dictionary<double, double> probDict = new Dictionary<double, double>();
+            Dictionary<double, int> countDict = new Dictionary<double, int>();
+            Random rand = new Random();
+            int numTrials = 100000;
+            for (int i = 0; i < Math.Pow(2, numBits); i++)
+            {
+                probDict[i] = 0;
+            }
+            for (int i = 0; i < numTrials; i++)
+            {
+                currPos = startPos;
+                for (int j = 0; j < numSteps; j++)
+                {
+                    if (rand.NextDouble() > 0.5)
+                    {
+                        currPos++;
+                    }
+                    else
+                    {
+                        currPos--;
+                    }
+                }
+                if (!countDict.ContainsKey(currPos))
+                {
+                    countDict[currPos] = 0;
+                }
+                countDict[currPos]++;
+            }
+            foreach (var num in countDict.Keys)
+            {
+                probDict[num] = (double)countDict[num] / numTrials;
+            }
+            return probDict;
+        }
+
+
+
 
         static Dictionary<double, double> ParseDumpFile(String[] dump)
         {
@@ -126,6 +202,10 @@ namespace GraphWalk
             return dict;
         }
 
+
+
+
+
         static (double, double) ParseLine(String line)
         {
             string[] arr = line.Split('\t');
@@ -146,11 +226,12 @@ namespace GraphWalk
         private void HWalk(object sender, RoutedEventArgs e)
         {
             MaxValue = 1;
-            Task.Factory.StartNew(Read);
+            Task.Factory.StartNew(ReadHadamard);
         }
         private void CWalk(object sender, RoutedEventArgs e)
         {
             MaxValue = 1;
+            Task.Factory.StartNew(ReadClassic);
         }
     }
 }

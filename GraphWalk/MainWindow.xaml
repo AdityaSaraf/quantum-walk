@@ -17,7 +17,7 @@
             <Button MinWidth="100" Click="CWalk">Classic Walk</Button>
         </StackPanel>
         
-        <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesCollection}" AnimationsSpeed="0:0:0.2">
+        <lvc:CartesianChart Grid.Row="1" Series="{Binding SeriesCollection}" AnimationsSpeed="0:0:0.05">
             <lvc:CartesianChart.AxisX>
                 <lvc:Axis Title="Step" IsMerged="False">
                     <lvc:Axis.Separator>
